@@ -10,7 +10,6 @@ from werkzeug.security import generate_password_hash, check_password_hash #encry
 # from models import *
 from app_core import app
 
-
 # manejo de la base de @staticmethod
 mysql = MySQL()
 mysql.init_app(app)
@@ -87,7 +86,7 @@ def valida_token(request):
 
         if not user:
             return {'mensage':'Usuario no existe'}
-        return {'user':user[0][11]}
+        return {'user':user[0][11],'id':user[0][0]}
 
     except Exception as error:
         return {'mensage':'Error valida token.'}
@@ -96,9 +95,9 @@ def token_requerido(f):
     @wraps(f)
     def decorate(*args, **kwargs):
         res = valida_token(request)
-        if not res.get('user'):
+        if not res.get('id'):
             return jsonify(res.get('mensage')), 401
-        return f(res.get('user'), *args, **kwargs)
+        return f(res.get('id'), *args, **kwargs)
     return decorate
 
 @app.route("/")
@@ -139,6 +138,8 @@ def login():
 @app.route("/users")
 @token_requerido
 def get_users(current_user):
+    # print(current_user)
+
     data = consTabla ("SELECT * FROM usuarios ")
     return json.dumps(data)
 
@@ -146,7 +147,6 @@ def get_users(current_user):
 @app.route("/user/<string:user_id>")
 @token_requerido
 def get_user(current_user,user_id):
-    print(user_id)
     data = consTablaPara("SELECT * FROM usuarios WHERE public_id=%s ",user_id)
     return json.dumps(data)
 
@@ -184,39 +184,50 @@ def create_user():
         token = jwt.encode(token_data, app.config['SECRET_KEY'])
         return jsonify({'token':token.decode('UTF-8')})
 
-        # return jsonify({
-        #     'mensage':f'Creacion ok: {new_user.public_id}',
-        #     'user':new_user.as_dict()
-        # }) 
+
     except Exception as error:
         return jsonify({
             'mensage':'Error al crear usuario.'
         }),400
 
-# @app.route("/user", methods=['POST'])
-# def create_user():
-#     req = request.get_json(silent=True)
-#     if not req:
-#         return jsonify({
-#             'mensage':'No json data found.'
-#         })
-#     try:
-#         email = request.json['email']
-#         password = request.json['password']
-
-#         new_user = User(email,password)
-
-#         db.session.add(new_user)
-#         db.session.commit()
-
-
-#         return jsonify({
-#             'mensage':f'Creacion ok: {new_user.public_id}',
-#             'user':new_user.as_dict()
-#         }) 
-#     except Exception as error:
-#         return jsonify({
-#             'mensage':'Error al crear usuario.'
-#         }),400
-
+@app.route("/visita", methods=['POST'])
+@token_requerido
+def visita(current_user):
     
+    req = request.get_json(silent=True)
+    if not req:
+        return jsonify({
+            'mensage':'No json data found.'
+        })
+    try:
+        conjunto =  request.json['conjunto'] 
+        etapa = request.json['etapa']
+        casa = request.json['casa']
+        visita = current_user
+        autorizado = request.json['autorizado']
+        fechallegada = request.json['fechallegada'] 
+        horallegada = request.json['horallegada']
+        tipoReg = request.json['tipoReg']
+        plataforma = request.json['plataforma']
+        fecha = datetime.now().strftime("%Y%m%d")
+        
+        parametros =  [conjunto,etapa,casa,autorizado,fechallegada,horallegada,0,'',0,0,plataforma,'Activo',tipoReg,fecha,visita,visita]
+        mensage = consInsTabla('INSERT INTO visitas (idCondominio, idEtapa, idPropiedades, autorizada, fechaLLegada, horaLLegada, fechaSale, horaSale, fechaMod, usuarioMod, plataforma, estado, tipoReg, fechaReg,codvisita,usuarioreg) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',parametros)
+        if mensage:
+            return jsonify(mensage)
+
+        else:
+             return jsonify({'mensage':'visita no creada'})
+
+    except Exception as error:
+        return jsonify({
+            'mensage':'Error al crear la visita.'
+        }),400
+
+@app.route("/visitas")
+@token_requerido
+def visitas(current_user):
+    data = consTabla ("select idvisita, idCondominio, IFNULL((select Nombre from condominio where condominio.idCondominio = visitas.idCondominio),'Desc') as condominio, idEtapa, IFNULL((select NombreEtapa from etapas where idetapas = idEtapa),'Des') as etapa , idPropiedades,ifnull((select Nropropiedad + ' ' + nombre from propiedad where idPropiedad = idPropiedades),'Des') as propiedad, autorizada, fechaLLegada, horaLLegada, estado from visitas")
+    return json.dumps(data)
+
+

@@ -10,4 +10,5 @@ from routes import *
 # db.create_all()
 
 if __name__ == '__main__':
-    app.run(debug=True, threaded=True,host="192.168.100.105" )
+    # app.run(debug=True, threaded=True, host="192.168.100.105" )
+    app.run(debug=True, threaded=True )
