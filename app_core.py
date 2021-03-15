@@ -10,12 +10,19 @@ from flask_bcrypt import Bcrypt
 app = Flask(__name__)
 app.config['MYSQL_DATABASE_HOST']='localhost'
 app.config['MYSQL_DATABASE_USER']='root'
-app.config['MYSQL_DATABASE_PASSWORD']='SisFiab'
+app.config['MYSQL_DATABASE_PASSWORD']='sisfiab'
 app.config['MYSQL_DATABASE_DB']='condominio'
+
+# app.config['MYSQL_DATABASE_HOST']='b2upkzc8ezoaq4qyocyd-mysql.services.clever-cloud.com'
+# app.config['MYSQL_DATABASE_USER']='uovvjbjmxz6gbzvm'
+# app.config['MYSQL_DATABASE_PASSWORD']='2UgT6FPsi2rtXJyjswyw'
+# app.config['MYSQL_DATABASE_DB']='b2upkzc8ezoaq4qyocyd'
+
+
 bcrypt = Bcrypt(app)
 
 ### esto es con sqllike
-app.config['SECRET_KEY'] = 'SisFiamIeAcT'
+app.config['SECRET_KEY'] = 'SisFiabIeAcT'
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////Users/MauricioT/Desktop/apicon/db/dataPruebaApi.db'
 # app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
